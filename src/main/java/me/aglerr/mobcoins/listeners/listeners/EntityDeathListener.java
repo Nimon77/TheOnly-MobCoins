@@ -28,28 +28,29 @@ import org.bukkit.inventory.ItemStack;
 public class EntityDeathListener implements Listener {
 
     private final MobCoins plugin;
-    public EntityDeathListener(MobCoins plugin){
+
+    public EntityDeathListener(MobCoins plugin) {
         this.plugin = plugin;
     }
 
     @EventHandler
-    public void onEntityDeath(EntityDeathEvent event){
+    public void onEntityDeath(EntityDeathEvent event) {
         SpawnerSpawnManager spawnManager = plugin.getManagerHandler().getSpawnerSpawnManager();
         LivingEntity entity = event.getEntity();
 
         // We want to return if the killed mob is a mythic mob
         // Check if MythicMobs is enabled
-        if(DependencyManager.MYTHIC_MOBS){
+        if (DependencyManager.MYTHIC_MOBS) {
             // Get the API from MythicMobs
             BukkitAPIHelper mythicMobsAPI = MythicBukkit.inst().getAPIHelper();
             // Return if the entity is a mythic mob
-            if(mythicMobsAPI.isMythicMob(entity)){
+            if (mythicMobsAPI.isMythicMob(entity)) {
                 return;
             }
         }
 
         // Check if disable mobcoin from spawner is enabled
-        if(ConfigValue.DISABLE_MOBCOIN_FROM_SPAWNER) {
+        if (ConfigValue.DISABLE_MOBCOIN_FROM_SPAWNER) {
             // Check if the entity is spawned from spawner, and storing it
             if (spawnManager.isSpawnFromSpawner(entity)) {
                 spawnManager.removeEntity(entity);
@@ -58,32 +59,34 @@ public class EntityDeathListener implements Listener {
         }
 
         // Return if the entity is in disabled worlds
-        if(ConfigValue.DISABLED_WORLDS.contains(entity.getWorld().getName())) return;
+        if (ConfigValue.DISABLED_WORLDS.contains(entity.getWorld().getName())) return;
 
         String mobType = entity.getType().name();
-        if (entity instanceof Ageable) {
-            Ageable entityAgeable = (Ageable)entity;
-            if (!entityAgeable.isAdult()) {
-                mobType = "BABY_" + mobType;
-            }
+
+        boolean isBaby = entity instanceof Ageable && !((Ageable) entity).isAdult();
+
+        // Get the CoinMob object based on whether the entity is a baby or not
+        String coinMobType = isBaby ? "BABY_" + mobType : mobType;
+        CoinMob coinMob = MobCoinsAPI.getCoinMob(coinMobType);
+
+        // If there's no specific CoinMob for baby, try the general mob type
+        if (coinMob == null && isBaby) {
+            coinMob = MobCoinsAPI.getCoinMob(mobType);
         }
 
-        // Trying to get CoinMob object from mob type name
-        CoinMob coinMob = MobCoinsAPI.getCoinMob(mobType);
-
         // Return if there is no CoinMob for that mob
-        if(coinMob == null) return;
+        if (coinMob == null) return;
 
         // Return if the mobcoin will not drop
-        if(!coinMob.willDropCoins()) return;
+        if (!coinMob.willDropCoins()) return;
 
         double amountDrop = coinMob.getAmountToDrop();
 
         // Physical Mobcoin
-        if(ConfigValue.PHYSICAL_MOBCOIN){
+        if (ConfigValue.PHYSICAL_MOBCOIN) {
             MobCoinsSpawnEvent spawnEvent = new MobCoinsSpawnEvent(entity, coinMob, amountDrop);
             Bukkit.getPluginManager().callEvent(spawnEvent);
-            if(spawnEvent.isCancelled()) return;
+            if (spawnEvent.isCancelled()) return;
 
             ItemStack stack = spawnEvent.getItemStack();
             World world = entity.getWorld();
@@ -93,10 +96,10 @@ public class EntityDeathListener implements Listener {
         }
 
         // Virtual Mobcoin
-        if(entity.getKiller() != null){
+        if (entity.getKiller() != null) {
             Player player = entity.getKiller();
             PlayerData playerData = MobCoinsAPI.getPlayerData(player);
-            if(playerData == null){
+            if (playerData == null) {
                 Debug.send(
                         "Event: Entity Death Virtual Mobcoin",
                         "No PlayerData found for " + player.getName()
@@ -106,15 +109,15 @@ public class EntityDeathListener implements Listener {
 
             MobCoinsReceiveEvent receiveEvent = new MobCoinsReceiveEvent(player, entity, amountDrop, false, null, false);
             Bukkit.getPluginManager().callEvent(receiveEvent);
-            if(receiveEvent.isCancelled()) return;
+            if (receiveEvent.isCancelled()) return;
 
             Debug.send(player.getName() + " received virtual mobcoins! (coins: " + receiveEvent.getAmountReceived() + ", reason: entity death, mythicmobs: false)");
 
             // Check if Salary Mode is enabled
-            if(ConfigValue.SALARY_MODE_ENABLED){
+            if (ConfigValue.SALARY_MODE_ENABLED) {
                 SalaryManager salaryManager = plugin.getManagerHandler().getSalaryManager();
                 // Check if the player should not receive coins after salary message
-                if(!ConfigValue.SALARY_MODE_RECEIVE_AFTER_MESSAGE){
+                if (!ConfigValue.SALARY_MODE_RECEIVE_AFTER_MESSAGE) {
                     // Adding coins directly to player data
                     playerData.addCoins(receiveEvent.getAmountReceived());
                 }
@@ -123,12 +126,12 @@ public class EntityDeathListener implements Listener {
             }
 
             // Directly add mobcoins to the player if salary mode is disabled
-            if(!ConfigValue.SALARY_MODE_ENABLED){
+            if (!ConfigValue.SALARY_MODE_ENABLED) {
                 playerData.addCoins(receiveEvent.getAmountReceived());
             }
 
             // Check if mobcoins receive message is enabled
-            if(ConfigValue.IS_ENABLE_RECEIVE_MOBCOINS_MESSAGE){
+            if (ConfigValue.IS_ENABLE_RECEIVE_MOBCOINS_MESSAGE) {
                 // Get the notification manager
                 NotificationManager notificationManager = plugin.getManagerHandler().getNotificationManager();
                 // Get the notification user and send the notification

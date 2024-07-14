@@ -23,19 +23,19 @@ import java.util.Optional;
 
 public class ItemManager {
 
-    public static ItemStack createItemStackWithHeadTextures(Player player, TypeItem item, List<String> lore){
+    public static ItemStack createItemStackWithHeadTextures(Player player, TypeItem item, List<String> lore) {
         ItemStack stack;
 
-        if(item.getMaterial().contains(";")){
+        if (item.getMaterial().contains(";")) {
             String[] split = item.getMaterial().split(";");
-            if(split[0].equalsIgnoreCase("head")){
+            if (split[0].equalsIgnoreCase("head")) {
                 stack = XMaterial.PLAYER_HEAD.parseItem();
                 SkullMeta skullMeta = (SkullMeta) stack.getItemMeta();
                 skullMeta.setDisplayName(PlaceholderAPI.setPlaceholders(player, item.getName()));
                 skullMeta.setLore(PlaceholderAPI.setPlaceholders(player, lore));
                 skullMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
                 SkullUtils.applySkin(skullMeta, PlaceholderAPI.setPlaceholders(player, split[1]));
-                if(item.isGlow()){
+                if (item.isGlow()) {
                     skullMeta.addEnchant(Enchantment.DURABILITY, 1, true);
                     skullMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
                 }
@@ -47,7 +47,7 @@ public class ItemManager {
 
         ItemStack optionalStack;
         Optional<XMaterial> optionalMaterial = XMaterial.matchXMaterial(item.getMaterial());
-        if(optionalMaterial.isPresent()){
+        if (optionalMaterial.isPresent()) {
             optionalStack = optionalMaterial.get().parseItem();
         } else {
             optionalStack = new ItemStack(Material.BARREL);
@@ -64,12 +64,12 @@ public class ItemManager {
                 .flags(ItemFlag.HIDE_ATTRIBUTES)
                 .amount(item.getAmount() <= 0 ? 1 : item.getAmount());
 
-        if(item.isGlow()) builder.enchant(Enchantment.DURABILITY).flags(ItemFlag.HIDE_ENCHANTS);
+        if (item.isGlow()) builder.enchant(Enchantment.DURABILITY).flags(ItemFlag.HIDE_ENCHANTS);
         stack = builder.build();
         return stack;
     }
 
-    public static ItemStack createMobCoinItem(double amount){
+    public static ItemStack createMobCoinItem(double amount) {
 
         ItemStack stack = null;
 
@@ -78,14 +78,14 @@ public class ItemManager {
                 .replace("{amount}", amount + "")
                 .replace("{amount_rounded}", (int) amount + "")));
 
-        if(ConfigValue.MOBCOINS_ITEM_MATERIAL.contains(";")){
+        if (ConfigValue.MOBCOINS_ITEM_MATERIAL.contains(";")) {
             String[] split = ConfigValue.MOBCOINS_ITEM_MATERIAL.split(";");
-            if(split[0].equalsIgnoreCase("head")){
+            if (split[0].equalsIgnoreCase("head")) {
                 stack = XMaterial.PLAYER_HEAD.parseItem();
                 SkullMeta skullMeta = (SkullMeta) stack.getItemMeta();
                 skullMeta.setDisplayName(Common.color(ConfigValue.MOBCOINS_ITEM_NAME));
                 skullMeta.setLore(Common.color(parsedLore));
-                if(ConfigValue.MOBCOINS_ITEM_GLOW){
+                if (ConfigValue.MOBCOINS_ITEM_GLOW) {
                     skullMeta.addEnchant(Enchantment.DURABILITY, 1, true);
                     skullMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
                 }
@@ -98,7 +98,7 @@ public class ItemManager {
                     .lore(Common.color(parsedLore))
                     .flags(ItemFlag.HIDE_ATTRIBUTES);
 
-            if(ConfigValue.MOBCOINS_ITEM_GLOW) builder.enchant(Enchantment.DURABILITY).flags(ItemFlag.HIDE_ENCHANTS);
+            if (ConfigValue.MOBCOINS_ITEM_GLOW) builder.enchant(Enchantment.DURABILITY).flags(ItemFlag.HIDE_ENCHANTS);
             stack = builder.build();
         }
 

@@ -18,13 +18,13 @@ import java.util.List;
 
 public class Utils {
 
-    public static void sendStartupLogo(){
-        for(String message : getStartupLogo()){
-            System.out.println(message);
+    public static void sendStartupLogo() {
+        for (String message : getStartupLogo()) {
+            Bukkit.getConsoleSender().sendMessage("[TheOnly-Mobcoins] " + message);
         }
     }
 
-    public static String[] getStartupLogo(){
+    public static String[] getStartupLogo() {
         return new String[]{
                 "  _______ _             ____        _       ",
                 " |__   __| |           / __ \\      | |      ",
@@ -41,7 +41,7 @@ public class Utils {
         };
     }
 
-    public static List<String> getUpdateMessage(){
+    public static List<String> getUpdateMessage() {
         return Arrays.asList(
                 "  _    _ _____  _____       _______ ______  _____ ",
                 " | |  | |  __ \\|  __ \\   /\\|__   __|  ____|/ ____|",
@@ -52,9 +52,9 @@ public class Utils {
         );
     }
 
-    public static void playSound(@NotNull Player player, @NotNull String path, @NotNull FileConfiguration config){
+    public static void playSound(@NotNull Player player, @NotNull String path, @NotNull FileConfiguration config) {
         boolean enabled = config.getBoolean(path + ".enabled");
-        if(!enabled) return;
+        if (!enabled) return;
 
         Sound sound = XSound.matchXSound(config.getString(path + ".name")).get().parseSound();
         float volume = (float) config.getDouble(path + ".volume");
@@ -62,9 +62,9 @@ public class Utils {
         player.playSound(player.getLocation(), sound, volume, pitch);
     }
 
-    public static void sendTitle(@NotNull Player player, @NotNull String path, @NotNull FileConfiguration config, double coinPlaceholder){
+    public static void sendTitle(@NotNull Player player, @NotNull String path, @NotNull FileConfiguration config, double coinPlaceholder) {
         boolean enabled = config.getBoolean(path + ".enabled");
-        if(!enabled) return;
+        if (!enabled) return;
 
         String title = config.getString(path + ".title")
                 .replace("{amount}", digits(coinPlaceholder))
@@ -81,15 +81,15 @@ public class Utils {
         Titles.sendTitle(player, fadeIn, stay, fadeOut, Common.color(title), Common.color(subTitle));
     }
 
-    public static void sendActionBar(@NotNull Player player, @NotNull String path, @NotNull FileConfiguration config, double coinPlaceholder){
+    public static void sendActionBar(@NotNull Player player, @NotNull String path, @NotNull FileConfiguration config, double coinPlaceholder) {
         boolean enabled = config.getBoolean(path + ".enabled");
-        if(!enabled) return;
+        if (!enabled) return;
 
         String message = config.getString(path + ".message")
                 .replace("{amount}", digits(coinPlaceholder))
                 .replace("{amount_rounded}", (int) coinPlaceholder + "");
 
-        if(Bukkit.getVersion().contains("1.8")){
+        if (Bukkit.getVersion().contains("1.8")) {
             ActionBar8.sendActionBarMessage(player, Common.color(message), 3, MCLibs.INSTANCE);
             return;
         }
@@ -97,11 +97,11 @@ public class Utils {
         ActionBar.sendActionBar(MCLibs.INSTANCE, player, Common.color(message), 60L);
     }
 
-    public static String integer(double amount){
+    public static String integer(double amount) {
         return String.valueOf((int) amount);
     }
 
-    public static String digits(double d){
+    public static String digits(double d) {
         NumberFormat numberFormat = NumberFormat.getInstance();
         numberFormat.setMaximumFractionDigits(2);
         numberFormat.setMinimumFractionDigits(0);
