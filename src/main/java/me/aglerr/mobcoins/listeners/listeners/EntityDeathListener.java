@@ -20,9 +20,11 @@ import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Ageable;
+import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.inventory.ItemStack;
 
 public class EntityDeathListener implements Listener {
@@ -64,14 +66,32 @@ public class EntityDeathListener implements Listener {
         String mobType = entity.getType().name();
 
         boolean isBaby = entity instanceof Ageable && !((Ageable) entity).isAdult();
+        boolean isTransformed = entity.getType() == EntityType.ZOMBIFIED_PIGLIN && entity.getEntitySpawnReason() == SpawnReason.PIGLIN_ZOMBIFIED;
 
-        // Get the CoinMob object based on whether the entity is a baby or not
-        String coinMobType = isBaby ? "BABY_" + mobType : mobType;
+        // Determine the CoinMob type based on the entity's state
+        StringBuilder coinMobTypeBuilder = new StringBuilder();
+        if (isTransformed) {
+            coinMobTypeBuilder.append("TRANSFORMED_");
+        }
+        if (isBaby) {
+            coinMobTypeBuilder.append("BABY_");
+        }
+        coinMobTypeBuilder.append(mobType);
+
+        String coinMobType = coinMobTypeBuilder.toString();
         CoinMob coinMob = MobCoinsAPI.getCoinMob(coinMobType);
 
-        // If there's no specific CoinMob for baby, try the general mob type
-        if (coinMob == null && isBaby) {
-            coinMob = MobCoinsAPI.getCoinMob(mobType);
+        // If there's no specific CoinMob, try fallback types
+        if (coinMob == null) {
+            if (isBaby) {
+                coinMob = MobCoinsAPI.getCoinMob("BABY_" + mobType);
+            }
+            if (coinMob == null && isTransformed) {
+                coinMob = MobCoinsAPI.getCoinMob("TRANSFORMED_" + mobType);
+            }
+            if (coinMob == null) {
+                coinMob = MobCoinsAPI.getCoinMob(mobType);
+            }
         }
 
         // Return if there is no CoinMob for that mob
